@@ -1,0 +1,288 @@
+openapi: 3.0.3
+info:
+  title: Pricing API
+  version: 1.0.0
+  description: Article pricing service with date-based discounts and floor enforcement.
+servers:
+  - url: http://localhost:8080
+paths:
+  /api/v1/articles:
+    post:
+      summary: Create article
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateArticleRequest'
+      responses:
+        '201':
+          description: Article created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ArticleResponse'
+    get:
+      summary: List active articles with effective price
+      parameters:
+        - in: query
+          name: effectiveAt
+          required: true
+          schema:
+            type: string
+            format: date
+        - in: query
+          name: page
+          required: false
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+        - in: query
+          name: size
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+      responses:
+        '200':
+          description: Effective prices returned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ArticlePricePageResponse'
+  /api/v1/articles/{articleId}:
+    get:
+      summary: Get article by id
+      parameters:
+        - $ref: '#/components/parameters/ArticleId'
+      responses:
+        '200':
+          description: Article found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ArticleResponse'
+    put:
+      summary: Update article
+      parameters:
+        - $ref: '#/components/parameters/ArticleId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateArticleRequest'
+      responses:
+        '200':
+          description: Article updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ArticleResponse'
+  /api/v1/articles/{articleId}/discounts:
+    post:
+      summary: Create discount for article
+      parameters:
+        - $ref: '#/components/parameters/ArticleId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateDiscountRequest'
+      responses:
+        '201':
+          description: Discount created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DiscountResponse'
+  /api/v1/articles/{articleId}/price:
+    get:
+      summary: Get article effective price
+      parameters:
+        - $ref: '#/components/parameters/ArticleId'
+        - in: query
+          name: effectiveAt
+          required: true
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: Effective price returned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ArticlePriceResponse'
+components:
+  parameters:
+    ArticleId:
+      name: articleId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+  schemas:
+    CreateArticleRequest:
+      type: object
+      required: [name, brand, slogan, costPriceExclVat, baseSalePriceExclVat, vatRate, active]
+      properties:
+        name:
+          type: string
+        brand:
+          type: string
+        slogan:
+          type: string
+        costPriceExclVat:
+          type: number
+          format: double
+        baseSalePriceExclVat:
+          type: number
+          format: double
+        vatRate:
+          type: number
+          description: VAT ratio from 0 to 1, for example 0.21 for 21%.
+        active:
+          type: boolean
+    UpdateArticleRequest:
+      allOf:
+        - $ref: '#/components/schemas/CreateArticleRequest'
+    CreateDiscountRequest:
+      type: object
+      required: [discountType, discountValue, startDate, endDate, enabled]
+      properties:
+        discountType:
+          type: string
+          enum: [PERCENTAGE, FIXED_AMOUNT]
+        discountValue:
+          type: number
+          description: Percentage discounts use a ratio from 0 to 1. Fixed amounts use an absolute value.
+        startDate:
+          type: string
+          format: date
+        endDate:
+          type: string
+          format: date
+        enabled:
+          type: boolean
+    ArticleResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        brand:
+          type: string
+        slogan:
+          type: string
+        costPriceExclVat:
+          type: number
+        baseSalePriceExclVat:
+          type: number
+        vatRate:
+          type: number
+        active:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    DiscountResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        articleId:
+          type: string
+          format: uuid
+        discountType:
+          type: string
+          enum: [PERCENTAGE, FIXED_AMOUNT]
+        discountValue:
+          type: number
+        startDate:
+          type: string
+          format: date
+        endDate:
+          type: string
+          format: date
+        enabled:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    DiscountSummary:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        discountType:
+          type: string
+          enum: [PERCENTAGE, FIXED_AMOUNT]
+        discountValue:
+          type: number
+        startDate:
+          type: string
+          format: date
+        endDate:
+          type: string
+          format: date
+    ArticlePriceResponse:
+      type: object
+      properties:
+        articleId:
+          type: string
+          format: uuid
+        name:
+          type: string
+        brand:
+          type: string
+        slogan:
+          type: string
+        costPriceExclVat:
+          type: number
+        baseSalePriceExclVat:
+          type: number
+        vatRate:
+          type: number
+        effectiveAt:
+          type: string
+          format: date
+        effectiveSalePriceExclVat:
+          type: number
+        effectiveSalePriceInclVat:
+          type: number
+        floorApplied:
+          type: boolean
+        appliedDiscount:
+          $ref: '#/components/schemas/DiscountSummary'
+    ArticlePricePageResponse:
+      type: object
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/ArticlePriceResponse'
+        totalElements:
+          type: integer
+          format: int64
+        totalPages:
+          type: integer
+        page:
+          type: integer
+        size:
+          type: integer

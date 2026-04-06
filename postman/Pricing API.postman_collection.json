@@ -1,0 +1,78 @@
+{
+  "info": {
+    "name": "Pricing API",
+    "_postman_id": "7e1ba5e7-2550-4d1f-9aa6-f0f41e6ffb9a",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Create article",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/articles",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "articles"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Brake Disc\",\n  \"brand\": \"TecAlliance\",\n  \"slogan\": \"Safe stopping every day\",\n  \"costPriceExclVat\": 10.0000,\n  \"baseSalePriceExclVat\": 15.0000,\n  \"vatRate\": 0.2100,\n  \"active\": true\n}"
+        }
+      }
+    },
+    {
+      "name": "Get article price",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/articles/{{articleId}}/price?effectiveAt={{effectiveAt}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "articles", "{{articleId}}", "price"],
+          "query": [
+            {
+              "key": "effectiveAt",
+              "value": "{{effectiveAt}}"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "List article prices",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/articles?effectiveAt={{effectiveAt}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "articles"],
+          "query": [
+            {
+              "key": "effectiveAt",
+              "value": "{{effectiveAt}}"
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080"
+    },
+    {
+      "key": "articleId",
+      "value": ""
+    },
+    {
+      "key": "effectiveAt",
+      "value": "2021-03-15"
+    }
+  ]
+}
